@@ -58,10 +58,29 @@ cs16_esp_diagnostic/
     │   ├── input.hpp / input.cpp
     │   ├── math.hpp / math.cpp
     │   └── logger.hpp / logger.cpp
-    ├── render/                         # OpenGL 2D Çizim ve İskelet Render Katmanı
-    ├── engine/                         # Bellek Güvenli Okuma & GoldSrc Pointer Resolver
+    ├── render/                         # OpenGL 2D Çizim ve Font Rasterizer Alt Modülleri
+    │   ├── font.hpp / font.cpp
+    │   ├── primitives.hpp / primitives.cpp
+    │   └── renderer.hpp / renderer.cpp
+    ├── engine/                         # Bellek Güvenli Okuma & GoldSrc Pointer Resolver Alt Modülleri
+    │   ├── memory.hpp / memory.cpp
+    │   ├── resolver.hpp / resolver.cpp
+    │   ├── studio.hpp / studio.cpp
+    │   ├── player.hpp / player.cpp
+    │   ├── entity.hpp / entity.cpp
+    │   └── engine.hpp / engine.cpp
     ├── hooks/                          # wglSwapBuffers & Dispatch Slot Hook Katmanı
-    └── features/                       # Modüler Özellikler (ESP, Aimbot, Radar, Menu, Config)
+    └── features/                       # Modüler Özellikler
+        ├── esp.hpp / esp.cpp           # ESP ve İskelet Çizim Katmanı
+        ├── aimbot.hpp / aimbot.cpp     # Aimbot ve RCS Katmanı
+        ├── radar.hpp / radar.cpp       # 2D Dönen Radar Katmanı
+        ├── misc.hpp / misc.cpp         # Bunnyhop ve Bomba Takip Katmanı
+        ├── config.hpp / config.cpp     # INI Kayıt / Yükleme Katmanı
+        └── menu/                       # Çok Sekmeli GUI & HUD Alt Modülleri
+            ├── widgets.hpp / widgets.cpp
+            ├── hud.hpp / hud.cpp
+            ├── tabs.hpp / tabs.cpp
+            └── menu.hpp / menu.cpp
 ```
 
 ---
@@ -82,18 +101,6 @@ Proje dizininde yer alan `build_internal.bat` dosyasını çalıştırabilir vey
 build_internal.bat
 ```
 
-### Manuel Derleme Komutları:
-
-**1. DLL Derlemesi:**
-```cmd
-g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ dllmain.cpp src\core\math.cpp src\core\logger.cpp src\core\input.cpp src\core\framework.cpp src\render\renderer.cpp src\engine\engine.cpp src\hooks\hooks.cpp src\features\esp.cpp src\features\radar.cpp src\features\misc.cpp src\features\aimbot.cpp src\features\config.cpp src\features\menu.cpp -o build\cs16_esp_internal.dll -lopengl32 -lgdi32 -luser32 -lpsapi
-```
-
-**2. Injector Derlemesi:**
-```cmd
-g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o build\injector.exe
-```
-
 ---
 
 ## 🎮 Kullanım (Usage)
@@ -103,13 +110,6 @@ g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o build\injector
 3. `build\cs16_esp_internal.dll` dosyası otomatik olarak `hl.exe` sürecine aktarılacaktır.
 4. Oyun içerisinde `INSERT` tuşuna basarak modüler GUI menüsünü açıp kapatabilirsiniz.
 5. `END` tuşuna basarak DLL'i güvenli bir şekilde oyundan çıkarabilirsiniz (Clean Unhook).
-
----
-
-## 💡 Teknik Mimari ve Invariantlar (Technical Highlights)
-
-- **Crash-Proof Hooking**: Engine fonksiyonlarında inline detour yerine `hw.dll` dispatch tablosundaki `V_CalcRefdef` (RVA `hw.dll + 0x11FE36C`) ve `HUD_AddEntity` (RVA `hw.dll + 0x11FE370`) pointer değişimi tercih edilmiştir.
-- **OpenGL Custom Font Renderer**: GoldSrc viewport kırpmalarını önlemek için `wglUseFontBitmapsA` yerine tamamen `GL_QUADS` ve 4 yönlü kontur geçişli (outline pass) dahili 8x8 font rasterizer kullanılmıştır.
 
 ---
 

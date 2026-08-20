@@ -12,6 +12,8 @@ g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ ^
     src\core\logger.cpp ^
     src\core\input.cpp ^
     src\core\framework.cpp ^
+    src\render\font.cpp ^
+    src\render\primitives.cpp ^
     src\render\renderer.cpp ^
     src\engine\memory.cpp ^
     src\engine\resolver.cpp ^
@@ -25,6 +27,9 @@ g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ ^
     src\features\misc.cpp ^
     src\features\aimbot.cpp ^
     src\features\config.cpp ^
+    src\features\menu\widgets.cpp ^
+    src\features\menu\hud.cpp ^
+    src\features\menu\tabs.cpp ^
     src\features\menu.cpp ^
     -o build\cs16_esp_internal.dll ^
     -lopengl32 -lgdi32 -luser32 -lpsapi

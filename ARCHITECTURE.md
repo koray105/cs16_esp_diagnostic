@@ -18,8 +18,10 @@ cs16_esp_diagnostic/
     │   ├── input.hpp / input.cpp       # Key tracking & input abstractions
     │   ├── math.hpp / math.cpp         # WorldToScreen, WorldToRadar, Vector math
     │   └── logger.hpp / logger.cpp     # File logger & live diagnostic snapshot dumper
-    ├── render/                         # OpenGL Render Abstraction Layer
-    │   └── renderer.hpp / renderer.cpp # Ortho 2D setup, primitive batching, bitmap font
+    ├── render/                         # OpenGL Render Abstraction Sub-Modules
+    │   ├── font.hpp / font.cpp         # Custom 8x8 font table & quad rasterizer
+    │   ├── primitives.hpp / primitives.cpp # Ortho 2D setup, primitive batching, boxes, lines
+    │   └── renderer.hpp / renderer.cpp # Unified Render facade header
     ├── engine/                         # Memory Safety & GoldSrc Interface Sub-Modules
     │   ├── memory.hpp / memory.cpp     # Safe memory reading & pointer validation
     │   ├── resolver.hpp / resolver.cpp # Engine function binding & raytracing
@@ -35,7 +37,11 @@ cs16_esp_diagnostic/
         ├── radar.hpp / radar.cpp       # 2D tactical rotating radar
         ├── misc.hpp / misc.cpp         # Auto bunnyhop, C4 & Grenade tracker
         ├── config.hpp / config.cpp     # INI parser & state synchronization
-        └── menu.hpp / menu.cpp         # Multi-tab interactive GUI & telemetry HUD
+        └── menu/                       # Multi-tab interactive GUI & telemetry HUD Sub-Modules
+            ├── widgets.hpp / widgets.cpp # UI controls, toggles, sliders, combo boxes
+            ├── hud.hpp / hud.cpp       # Floating HUD widgets, keybinds, telemetry
+            ├── tabs.hpp / tabs.cpp     # Multi-tab panels rendering
+            └── menu.hpp / menu.cpp     # Master menu state coordinator & dispatcher
 ```
 
 ---
@@ -51,8 +57,10 @@ cs16_esp_diagnostic/
 - **`math.hpp / .cpp`**: Implements 3D-to-2D projection (`WorldToScreen`) factoring in dynamic FOV and aspect ratios. Implements rotational 2D coordinate transformation for radar (`WorldToRadar`).
 - **`logger.hpp / .cpp`**: Handles file logging with thread safety and outputs periodic runtime diagnostic telemetry reports.
 
-### `src/render/` (OpenGL Drawing Engine)
-- **`renderer.hpp / .cpp`**: Manages orthographic 2D projection matrix setup (`Begin2D` / `End2D`), rendering state backup/restore, batch geometry primitives (boxes, outlines, circles, filled gradients), and pixel-perfect built-in 8x8 font rasterizer.
+### `src/render/` (OpenGL Drawing Engine Sub-Modules)
+- **`font.hpp / .cpp`**: 8x8 font bitmap glyph table with 4-way solid outline rasterizer (`DrawString`, `GetTextWidth`).
+- **`primitives.hpp / .cpp`**: Manages orthographic 2D projection matrix setup (`Begin2D` / `End2D`), rendering state backup/restore, and batch geometry primitives (boxes, outlines, circles, filled gradients, pill badges).
+- **`renderer.hpp / .cpp`**: Unified Render facade.
 
 ### `src/engine/` (GoldSrc Engine Sub-Modules)
 - **`memory.hpp / .cpp`**: Provides memory safety primitives (`SafeReadBytes`, `IsReadableFast`, `SafeReadString`).
@@ -68,10 +76,14 @@ cs16_esp_diagnostic/
   - **`V_CalcRefdef`**: Hooks the `hw.dll` dispatch slot to capture camera origin, angles, and dynamic zoom FOV.
   - **`HUD_AddEntity`**: Hooks the entity dispatch slot to monitor visible render entities and world items (C4, grenades).
 
-### `src/features/` (Functional Subsystems)
+### `src/features/` (Functional Subsystems & Menu Sub-Modules)
 - **`esp.hpp / .cpp`**: In-game overlays including 2D bounding boxes, corner boxes, player health bars, distance tags, weapon names, and bone markers.
 - **`aimbot.hpp / .cpp`**: Calculates view angle deltas, applies smoothing algorithms, and adjusts angles during camera calculation frames.
 - **`radar.hpp / .cpp`**: Renders rotating 2D radar overlay with orientation aligned to local player yaw.
 - **`misc.hpp / .cpp`**: Implements bunnyhop assistance and tracks active dropped/planted C4 and airborne grenades.
 - **`config.hpp / .cpp`**: Serializes and deserializes cheat settings to `viibe_config.ini`.
-- **`menu.hpp / .cpp`**: Renders modular draggable tab panels (Aimbot, Visuals, Radar, Misc, Themes, Config) with interactive controls.
+- **`menu/`**:
+  - **`widgets.hpp / .cpp`**: Capsule toggles, sliders, combo boxes, color palettes, and panel headers.
+  - **`hud.hpp / .cpp`**: Watermark card, active keybinds list, and real-time telemetry diagnostics HUD.
+  - **`tabs.hpp / .cpp`**: Individual tab contents for Combat, Render, Movement/Radar, and Themes/Config.
+  - **`menu.hpp / .cpp`**: Master menu state coordinator and input handling.
