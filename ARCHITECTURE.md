@@ -20,8 +20,13 @@ cs16_esp_diagnostic/
     │   └── logger.hpp / logger.cpp     # File logger & live diagnostic snapshot dumper
     ├── render/                         # OpenGL Render Abstraction Layer
     │   └── renderer.hpp / renderer.cpp # Ortho 2D setup, primitive batching, bitmap font
-    ├── engine/                         # Memory Safety & GoldSrc Interface
-    │   └── engine.hpp / engine.cpp     # Function resolution, studio hitboxes, player reading
+    ├── engine/                         # Memory Safety & GoldSrc Interface Sub-Modules
+    │   ├── memory.hpp / memory.cpp     # Safe memory reading & pointer validation
+    │   ├── resolver.hpp / resolver.cpp # Engine function binding & raytracing
+    │   ├── studio.hpp / studio.cpp     # Studio model header parsing & hitbox cache
+    │   ├── player.hpp / player.cpp     # Player reading, skeleton generation & team resolution
+    │   ├── entity.hpp / entity.cpp     # World entity tracking, dropped weapons, C4 & grenades
+    │   └── engine.hpp / engine.cpp     # Unified Engine facade header
     ├── hooks/                          # Engine & Graphics Hooks
     │   └── hooks.hpp / hooks.cpp       # wglSwapBuffers hook, hw.dll dispatch table slots
     └── features/                       # Modular Feature Implementations
@@ -49,8 +54,13 @@ cs16_esp_diagnostic/
 ### `src/render/` (OpenGL Drawing Engine)
 - **`renderer.hpp / .cpp`**: Manages orthographic 2D projection matrix setup (`Begin2D` / `End2D`), rendering state backup/restore, batch geometry primitives (boxes, outlines, circles, filled gradients), and pixel-perfect built-in 8x8 font rasterizer.
 
-### `src/engine/` (GoldSrc Resolver & Parser)
-- **`engine.hpp / .cpp`**: Resolves `gEngfuncs` function pointers and `hw.dll` offsets. Provides memory-safe reading primitives (`SafeRead`, `IsReadableFast`). Parses real-time entity state from memory and reads dynamic hitbox coordinates from studio models.
+### `src/engine/` (GoldSrc Engine Sub-Modules)
+- **`memory.hpp / .cpp`**: Provides memory safety primitives (`SafeReadBytes`, `IsReadableFast`, `SafeReadString`).
+- **`resolver.hpp / .cpp`**: Resolves `gEngfuncs` function pointers, `hw.dll` offsets, and ray-tracing visibility check (`IsTargetVisible`).
+- **`studio.hpp / .cpp`**: Parses GoldSrc studio headers, retrieves hitbox bounds, and maintains zero-allocation model caching.
+- **`player.hpp / .cpp`**: Reads player state from memory, reconstructs 3D skeleton joints, resolves player teams, and calculates distance metrics.
+- **`entity.hpp / .cpp`**: Tracks world items (C4, dropped weapons, grenades) and parses weapon display names.
+- **`engine.hpp / .cpp`**: Acts as a unified facade for backward compatibility across all modules.
 
 ### `src/hooks/` (Interception Layer)
 - **`hooks.hpp / .cpp`**: 
@@ -65,19 +75,3 @@ cs16_esp_diagnostic/
 - **`misc.hpp / .cpp`**: Implements bunnyhop assistance and tracks active dropped/planted C4 and airborne grenades.
 - **`config.hpp / .cpp`**: Serializes and deserializes cheat settings to `viibe_config.ini`.
 - **`menu.hpp / .cpp`**: Renders modular draggable tab panels (Aimbot, Visuals, Radar, Misc, Themes, Config) with interactive controls.
-
----
-
-## 3. OpenGL & Hooking Invariants (Lessons Learned)
-
-### 1. Font Rendering in GoldSrc Hooks
-- **Rule**: Never use `wglUseFontBitmapsA` + `glRasterPos2f` inside hooked `wglSwapBuffers` routines. GoldSrc manages custom viewport and projection matrices that cause GPU drivers to discard or clip bitmap fonts.
-- **Invariant**: Text MUST be rendered exclusively using **OpenGL Quads (`GL_QUADS`)** with a **4-way black outline pass** (`(-1, 0)`, `(+1, 0)`, `(0, -1)`, `(0, +1)`). This guarantees 100% visibility, zero driver clipping, and crystal-clear contrast against any game texture.
-
-### 2. Dispatch Table Hooking Stability
-- **Rule**: Avoid inline opcode detours on engine functions whenever possible.
-- **Invariant**: Hook `hw.dll` dispatch slots for `V_CalcRefdef` (RVA `hw.dll + 0x11FE36C`) and `HUD_AddEntity` (RVA `hw.dll + 0x11FE370`) via direct function pointer swapping in memory. This ensures crash-proof execution without memory corruption or anti-cheat flags.
-
-### 3. High-Contrast UI Component Design
-- **Toggles**: Capsule switches with glowing right-aligned knobs for `[ON]` and left-aligned silver knobs for `[OFF]` prevent text smudging and allow instant status recognition.
-- **Sliders & Badges**: Dedicated value containers with unit suffixes (`deg`, `px`, `m`, `x`) prevent character breakage from unsupported ASCII glyphs.

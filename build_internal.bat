@@ -13,6 +13,11 @@ g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ ^
     src\core\input.cpp ^
     src\core\framework.cpp ^
     src\render\renderer.cpp ^
+    src\engine\memory.cpp ^
+    src\engine\resolver.cpp ^
+    src\engine\studio.cpp ^
+    src\engine\entity.cpp ^
+    src\engine\player.cpp ^
     src\engine\engine.cpp ^
     src\hooks\hooks.cpp ^
     src\features\esp.cpp ^
