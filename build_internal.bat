@@ -1,59 +1,45 @@
 @echo off
-setlocal enabledelayedexpansion
+echo ================================================================
+echo Building V.I.I.B.E CS 1.6 Modular Suite (MinGW32)
+echo ================================================================
 
-echo ==================================================
-echo [V.I.I.B.E Build Engine] Modular CS 1.6 Suite v3.0
-echo ==================================================
-echo.
+if not exist "build" mkdir "build"
 
-set "COMPILER_DIR=C:\Users\pc\.gemini\antigravity\scratch\w64devkit\bin"
-if not exist "!COMPILER_DIR!\g++.exe" (
-    echo [ERROR] MinGW GCC not found in !COMPILER_DIR!
-    pause
-    exit /b 1
+echo [*] Compiling cs16_esp_internal.dll...
+g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ ^
+    dllmain.cpp ^
+    src\core\math.cpp ^
+    src\core\logger.cpp ^
+    src\core\input.cpp ^
+    src\core\framework.cpp ^
+    src\render\renderer.cpp ^
+    src\engine\engine.cpp ^
+    src\hooks\hooks.cpp ^
+    src\features\esp.cpp ^
+    src\features\radar.cpp ^
+    src\features\misc.cpp ^
+    src\features\aimbot.cpp ^
+    src\features\config.cpp ^
+    src\features\menu.cpp ^
+    -o build\cs16_esp_internal.dll ^
+    -lopengl32 -lgdi32 -luser32 -lpsapi
+
+if %ERRORLEVEL% NEQ 0 (
+    echo [-] DLL Build Failed!
+    exit /b %ERRORLEVEL%
 )
 
-set "PATH=!COMPILER_DIR!;%PATH%"
+echo [+] DLL Build Succeeded: build\cs16_esp_internal.dll
 
-set "SOURCES=dllmain.cpp src\core\math.cpp src\core\logger.cpp src\render\renderer.cpp src\engine\engine.cpp src\hooks\hooks.cpp src\features\esp.cpp src\features\radar.cpp src\features\misc.cpp src\features\aimbot.cpp src\features\config.cpp src\features\menu.cpp"
+echo [*] Compiling injector.exe...
+g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o build\injector.exe
 
-echo [1/2] Compiling cs16_esp_internal.dll...
-if exist cs16_esp_internal.dll (
-    del /f /q cs16_esp_internal.dll 2>nul
-    if exist cs16_esp_internal.dll (
-        echo [WARNING] cs16_esp_internal.dll is in use by a process! Close game before compiling.
-    )
+if %ERRORLEVEL% NEQ 0 (
+    echo [-] Injector Build Failed!
+    exit /b %ERRORLEVEL%
 )
-g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ !SOURCES! -o cs16_esp_internal.dll -lopengl32 -lgdi32 -luser32 -lpsapi
-if %errorlevel% neq 0 (
-    echo [ERROR] Modular DLL build failed!
-    pause
-    exit /b 1
-)
-echo [OK] cs16_esp_internal.dll
-echo.
 
-echo [2/2] Compiling Injector...
-g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o injector.exe
-if %errorlevel% neq 0 (
-    echo [ERROR] Injector build failed!
-    pause
-    exit /b 1
-)
-echo [OK] injector.exe
-echo.
-
-echo ==================================================
-echo [SUCCESS] Modular Suite v3.0 build complete!
-echo ==================================================
-echo   Target DLL: cs16_esp_internal.dll
-echo   Injector:   injector.exe
-echo.
-echo Architecture:
-echo   [src/sdk]      - GoldSrc structures, entity types ^& MenuState
-echo   [src/core]     - Math (W2S, WorldToRadar) ^& Telemetry Logger
-echo   [src/render]   - OpenGL 2D batching, primitives ^& font rasterizer
-echo   [src/engine]   - Engine resolver, player reader ^& world entity scanner
-echo   [src/hooks]    - Safe hw.dll dispatch slot hooks ^& wglSwap
-echo   [src/features] - ESP, 2D Radar, Misc (Bhop/C4/FOV), Config ^& Menu
-echo ==================================================
+echo [+] Injector Build Succeeded: build\injector.exe
+echo ================================================================
+echo Build Complete! Outputs placed in build\ directory.
+echo ================================================================

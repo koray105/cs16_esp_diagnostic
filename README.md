@@ -45,15 +45,19 @@ Counter-Strike 1.6 (GoldSrc Motoru) için geliştirilmiş modüler, yüksek perf
 
 ```
 cs16_esp_diagnostic/
+├── .gitignore                          # Git dışlama kuralları (binary/log dosyaları)
 ├── build_internal.bat                  # Otomatik Derleme Senaryosu (MinGW32)
-├── injector.cpp / injector.exe         # Uzaktan İş parçacığı (Remote Thread) Enjektörü
-├── dllmain.cpp                         # DLL Yaşam Döngüsü & Worker Thread Yönetimi
-├── viibe_config.ini                    # Kalıcı Kullanıcı Ayarları
+├── injector.cpp                        # Uzaktan İş parçacığı (Remote Thread) Enjektörü
+├── dllmain.cpp                         # DLL Giriş Noktası (DllMain & Framework Delegator)
 ├── ARCHITECTURE.md                     # Detaylı Mimari ve Teknik Dokümantasyon
 ├── README.md                           # Proje Ana Dokümantasyonu
 └── src/
     ├── sdk/                            # GoldSrc Motor Yapıları ve Tipleri (ref_params_t vb.)
-    ├── core/                           # Matematiksel Dönüşümler (W2S, Radar) & Loglama
+    ├── core/                           # Framework Yaşam Döngüsü, Girdi Yönetimi, Matematik & Loglama
+    │   ├── framework.hpp / framework.cpp
+    │   ├── input.hpp / input.cpp
+    │   ├── math.hpp / math.cpp
+    │   └── logger.hpp / logger.cpp
     ├── render/                         # OpenGL 2D Çizim ve İskelet Render Katmanı
     ├── engine/                         # Bellek Güvenli Okuma & GoldSrc Pointer Resolver
     ├── hooks/                          # wglSwapBuffers & Dispatch Slot Hook Katmanı
@@ -72,7 +76,7 @@ cs16_esp_diagnostic/
 
 ## 🚀 Derleme (Building)
 
-Proje dizininde yer alan `build_internal.bat` dosyasını çalıştırabilir veya terminal üzerinden manuel olarak derleyebilirsiniz:
+Proje dizininde yer alan `build_internal.bat` dosyasını çalıştırabilir veya terminal üzerinden manuel olarak derleyebilirsiniz (Çıktılar `build/` dizinine yerleştirilir):
 
 ```cmd
 build_internal.bat
@@ -82,12 +86,12 @@ build_internal.bat
 
 **1. DLL Derlemesi:**
 ```cmd
-g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ dllmain.cpp src\core\math.cpp src\core\logger.cpp src\render\renderer.cpp src\engine\engine.cpp src\hooks\hooks.cpp src\features\esp.cpp src\features\radar.cpp src\features\misc.cpp src\features\aimbot.cpp src\features\config.cpp src\features\menu.cpp -o cs16_esp_internal.dll -lopengl32 -lgdi32 -luser32 -lpsapi
+g++.exe -shared -O2 -m32 -static-libgcc -static-libstdc++ dllmain.cpp src\core\math.cpp src\core\logger.cpp src\core\input.cpp src\core\framework.cpp src\render\renderer.cpp src\engine\engine.cpp src\hooks\hooks.cpp src\features\esp.cpp src\features\radar.cpp src\features\misc.cpp src\features\aimbot.cpp src\features\config.cpp src\features\menu.cpp -o build\cs16_esp_internal.dll -lopengl32 -lgdi32 -luser32 -lpsapi
 ```
 
 **2. Injector Derlemesi:**
 ```cmd
-g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o injector.exe
+g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o build\injector.exe
 ```
 
 ---
@@ -95,8 +99,8 @@ g++.exe -O2 -m32 -static-libgcc -static-libstdc++ injector.cpp -o injector.exe
 ## 🎮 Kullanım (Usage)
 
 1. Counter-Strike 1.6'yı (`hl.exe`) başlatın.
-2. Derlenen `injector.exe` dosyasını yönetici olarak çalıştırın.
-3. `cs16_esp_internal.dll` dosyası otomatik olarak `hl.exe` sürecine aktarılacaktır.
+2. Derlenen `build\injector.exe` dosyasını yönetici olarak çalıştırın.
+3. `build\cs16_esp_internal.dll` dosyası otomatik olarak `hl.exe` sürecine aktarılacaktır.
 4. Oyun içerisinde `INSERT` tuşuna basarak modüler GUI menüsünü açıp kapatabilirsiniz.
 5. `END` tuşuna basarak DLL'i güvenli bir şekilde oyundan çıkarabilirsiniz (Clean Unhook).
 

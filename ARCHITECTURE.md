@@ -4,16 +4,18 @@
 
 ```
 cs16_esp_diagnostic/
+├── .gitignore                          # Excludes compiled binaries, build/ outputs, logs
 ├── build_internal.bat                  # Automated compiler script (MinGW32)
-├── injector.cpp / injector.exe         # Dedicated remote thread injector
-├── dllmain.cpp                         # DLL lifecycle, worker threads, & eject handler
-├── viibe_config.ini                    # Persistent user settings
-├── GOLDSRC_REVERSE_ENGINEERING_ARCHIVE.md # Reverse engineering offsets & dispatch tables
+├── injector.cpp                        # Dedicated remote thread injector
+├── dllmain.cpp                         # DLL entry point (delegates to Framework)
 ├── ARCHITECTURE.md                     # Modular layer specification
+├── README.md                           # Main documentation
 └── src/
     ├── sdk/                            # GoldSrc Engine Types & Structs
     │   └── sdk.hpp                     # ref_params_t, studiohdr_t, PlayerData, MenuState
-    ├── core/                           # Math & Diagnostic Telemetry
+    ├── core/                           # Core Framework, Input, Math & Telemetry
+    │   ├── framework.hpp / framework.cpp # Engine/DLL lifecycle, VEH crash handler & main loop
+    │   ├── input.hpp / input.cpp       # Key tracking & input abstractions
     │   ├── math.hpp / math.cpp         # WorldToScreen, WorldToRadar, Vector math
     │   └── logger.hpp / logger.cpp     # File logger & live diagnostic snapshot dumper
     ├── render/                         # OpenGL Render Abstraction Layer
@@ -38,7 +40,9 @@ cs16_esp_diagnostic/
 ### `src/sdk/` (Software Development Kit)
 - **`sdk.hpp`**: Contains exact GoldSrc structures (`ref_params_t`, `studiohdr_t`, `mstudiobone_t`, `mstudiohitbox_t`, `hud_player_info_t`), internal player representations (`PlayerData`, `WorldEntityData`), and UI state structures (`MenuState`, `PanelState`).
 
-### `src/core/` (Core Math & Telemetry)
+### `src/core/` (Core Framework & Telemetry)
+- **`framework.hpp / .cpp`**: Manages DLL injection lifecycle, initializes logging and configuration, sets up Vectored Exception Handler (VEH) crash trap, resolves engine hooks, and manages the main worker loop.
+- **`input.hpp / .cpp`**: Tracks async key states and toggle hits (`KeyTracker`).
 - **`math.hpp / .cpp`**: Implements 3D-to-2D projection (`WorldToScreen`) factoring in dynamic FOV and aspect ratios. Implements rotational 2D coordinate transformation for radar (`WorldToRadar`).
 - **`logger.hpp / .cpp`**: Handles file logging with thread safety and outputs periodic runtime diagnostic telemetry reports.
 
@@ -77,4 +81,3 @@ cs16_esp_diagnostic/
 ### 3. High-Contrast UI Component Design
 - **Toggles**: Capsule switches with glowing right-aligned knobs for `[ON]` and left-aligned silver knobs for `[OFF]` prevent text smudging and allow instant status recognition.
 - **Sliders & Badges**: Dedicated value containers with unit suffixes (`deg`, `px`, `m`, `x`) prevent character breakage from unsupported ASCII glyphs.
-

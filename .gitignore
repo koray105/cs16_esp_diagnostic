@@ -1,15 +1,17 @@
-﻿# Compiler and build outputs
+# Build outputs and binaries
+build/
+bin/
+*.dll
+*.exe
 *.o
 *.obj
-*.log
 
-# IDE files
-.vs/
+# Logs and transient config files
+*.log
+viibe_config.ini
+
+# IDE & Editor metadata
 .vscode/
 .idea/
 *.suo
 *.user
-
-# OS generated files
-[Dd]esktop.ini
-Thumbs.db
