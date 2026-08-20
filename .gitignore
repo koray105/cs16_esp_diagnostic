@@ -1,0 +1,15 @@
+﻿# Compiler and build outputs
+*.o
+*.obj
+*.log
+
+# IDE files
+.vs/
+.vscode/
+.idea/
+*.suo
+*.user
+
+# OS generated files
+[Dd]esktop.ini
+Thumbs.db
